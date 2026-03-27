@@ -50,17 +50,19 @@ open import Cubical.Foundations.Function
 open import Cubical.Functions.Embedding
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Univalence
+open import Cubical.HITs.SetTruncation hiding (rec)
 import Cubical.Functions.Logic as L
-import Cubical.Data.Sigma
+open import Cubical.Data.Sigma
 open import Cubical.Data.Nat
 open import Cubical.Data.Maybe hiding (rec)
 open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to ⋆)
+open import Cubical.Data.Bool hiding (_⊕_)
 open import Cubical.Data.Empty hiding (rec)
 open import Cubical.Data.Sum hiding (rec)
 
 variable
   ℓ ℓ' ℓ'' : Level
-  A : Type ℓ
+  A B C : Type ℓ
 
 ------------------------------------------------------------------------------
 
@@ -73,13 +75,11 @@ variable
 -- Homotopy Type Theory
 ------------------------------------------------------------------------------
 
--- funExt : {B : A → I → Type ℓ'}
---   {f : (x : A) → B x i0} {g : (x : A) → B x i1}
---   → ((x : A) → PathP (B x) (f x) (g x))
---   → PathP (λ i → (x : A) → B x i) f g
--- funExt p i x = p x i
+-- funExt : (f g : A → B) → ((x : A) → f x ≡ g x) → f ≡ g
+-- funExt = funExt
 
--- ua
+-- ua : A ≃ B → A ≡ B
+-- ua = {!!}
 
 
 
@@ -113,30 +113,6 @@ variable
 
 ------------------------------------------------------------------------------
 -- Lists, Vectors
-------------------------------------------------------------------------------
-
-module Lists where
-
-  data List {ℓ} (A : Type ℓ) : Type ℓ where
-    []  : List A
-    _∷_ : A → List A → List A
-
-  head : {A : Type ℓ} → List A → Maybe A
-  head [] = nothing
-  head (x ∷ xs) = just x
-
-module Vectors where
-
-  data Vec {ℓ} (A : Type ℓ) : ℕ → Type ℓ where
-    []  : Vec A zero
-    _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
-
-  head : {A : Type ℓ} {n : ℕ} → Vec A (suc n) → A
-  head (x ∷ xs) = x
-
-------------------------------------------------------------------------------
-
-
 
 
 
@@ -179,64 +155,169 @@ module Circle where
     neg : ℕ → ℤ
     zero : pos 0 ≡ neg 0
 
-  succ : ℤ → ℤ
-  succ (pos n) = pos (suc n)
-  succ (neg 0) = pos 1
-  succ (neg (suc n)) = neg n
-  succ (zero i) = pos 1
+  -- succ : ℤ → ℤ
+  -- succ (pos n) = pos (suc n)
+  -- succ (neg 0) = pos 1
+  -- succ (neg (suc n)) = neg n
+  -- succ (zero i) = pos 1
 
-  pred : ℤ → ℤ
-  pred (pos 0) = neg 1
-  pred (pos (suc n)) = pos n
-  pred (neg n) = neg (suc n)
-  pred (zero i) = neg 1
-
-  -- pred zero = neg 0
-  -- pred (pos 0) = zero
+  -- pred : ℤ → ℤ
+  -- pred (pos 0) = neg 1
   -- pred (pos (suc n)) = pos n
   -- pred (neg n) = neg (suc n)
+  -- pred (zero i) = neg 1
 
-  predSucc : (n : ℤ) → pred (succ n) ≡ n
-  predSucc (pos n) = refl
-  predSucc (neg 0) = zero
-  predSucc (neg (suc x)) = refl
-  predSucc (zero i) j = zero (i ∧ j)
+  -- -- pred zero = neg 0
+  -- -- pred (pos 0) = zero
+  -- -- pred (pos (suc n)) = pos n
+  -- -- pred (neg n) = neg (suc n)
 
-  succPred : (n : ℤ) → succ (pred n) ≡ n
-  succPred (pos 0) = sym zero
-  succPred (pos (suc n)) = refl
-  succPred (neg n) = refl
-  succPred (zero i) j = zero (i ∨ ~ j)
+  -- predSucc : (n : ℤ) → pred (succ n) ≡ n
+  -- predSucc (pos n) = refl
+  -- predSucc (neg 0) = zero
+  -- predSucc (neg (suc x)) = refl
+  -- predSucc (zero i) j = zero (i ∧ j)
 
-  succEquiv : ℤ ≃ ℤ
-  succEquiv = isoToEquiv (iso succ pred succPred predSucc)
+  -- succPred : (n : ℤ) → succ (pred n) ≡ n
+  -- succPred (pos 0) = sym zero
+  -- succPred (pos (suc n)) = refl
+  -- succPred (neg n) = refl
+  -- succPred (zero i) j = zero (i ∨ ~ j)
 
-  cover : ℤ → (base ≡ base)
-  cover (pos zero) = refl
-  cover (pos (suc x)) = loop ∙ cover (pos x)
-  cover (neg zero) = refl
-  cover (neg (suc x)) = loop ⁻¹ ∙ cover (neg x)
-  cover (zero i) = refl
+  -- succEquiv : ℤ ≃ ℤ
+  -- succEquiv = isoToEquiv (iso succ pred succPred predSucc)
 
-  code : S¹ → Type
-  code base = ℤ
-  code (loop i) = ua succEquiv i
+  -- cover : ℤ → (base ≡ base)
+  -- cover (pos zero) = refl
+  -- cover (pos (suc x)) = loop ∙ cover (pos x)
+  -- cover (neg zero) = refl
+  -- cover (neg (suc x)) = loop ⁻¹ ∙ cover (neg x)
+  -- cover (zero i) = refl
 
-  encode : (x : S¹) → (base ≡ x) → code x
-  encode x p = tpt code p (pos 0)
+  -- code : S¹ → Type
+  -- code base = ℤ
+  -- code (loop i) = ua succEquiv i
 
-  encodeDecode : (x : S¹) → (p : base ≡ x) → {!!}
-  encodeDecode = {!!}
+  -- encode : (x : S¹) → (base ≡ x) → code x
+  -- encode x p = tpt code p (pos 0)
 
-  decodeEncode : (n : ℤ) → encode base (cover n) ≡ n
-  decodeEncode (pos 0) = refl
-  decodeEncode (pos (suc n)) = {!!}
-  decodeEncode (neg 0) = {!!}
-  decodeEncode (neg (suc n)) = {!!}
-  decodeEncode (zero i) = {!!}
+  -- encodeDecode : (x : S¹) → (p : base ≡ x) → {!!}
+  -- encodeDecode = {!!}
 
-  pi1 : ΩS¹ ≃ ℤ
-  pi1 = isoToEquiv (iso (encode base) cover decodeEncode {!encodeDecode!})
+  -- decodeEncode : (n : ℤ) → encode base (cover n) ≡ n
+  -- decodeEncode (pos 0) = refl
+  -- decodeEncode (pos (suc n)) = {!!}
+  -- decodeEncode (neg 0) = {!!}
+  -- decodeEncode (neg (suc n)) = {!!}
+  -- decodeEncode (zero i) = {!!}
+
+  -- pi1 : ΩS¹ ≃ ℤ
+  -- pi1 = isoToEquiv (iso (encode base) cover decodeEncode {!encodeDecode!})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  data T² : Type where
+    base : T²
+    loop1 : base ≡ base
+    loop2 : base ≡ base
+    filler : Square loop1 loop1 loop2 loop2
+          -- loop1 ∙ loop2 ≡ loop2 ∙ loop1
+
+  -- data K² : Type where
+  --   base : K²
+  --   loop1 : base ≡ base
+  --   loop2 : base ≡ base
+  --   filler : Square loop1 loop2 (sym loop1) loop2
+          -- loop1 ∙ loop2 ∙ loop1 ≡ loop2
+
+  data RP² : Type where
+    base : RP²
+    loop : base ≡ base
+    loop² : Square loop refl refl loop
+       -- loop ∙ loop = refl
+
+  ΩRP² : Type
+  ΩRP² = Path RP² base base
+
+  -- code : ℝP² → Type
+  -- code base = Bool
+  -- code (loop i) = ua notEquiv i
+  -- code (loop² i j) = {!!}
+
+  -- encode : (x : ℝP²) → (p : base ≡ x) → Bool
+  -- encode x p = tpt {!!} {!!} {!!}
+  -- π
+
+
+  -- S¹ × S¹ ≃ T²
+
+  c2t : (S¹ × S¹) → T²
+  c2t (base , base) = base
+  c2t (loop i , base) = loop1 i
+  c2t (base , loop j) = loop2 j
+  c2t (loop i , loop j) = filler j i
+
+  t2c : T² → (S¹ × S¹)
+  t2c base = (base , base)
+  t2c (loop1 i) = (loop i , base)
+  t2c (loop2 i) = (base , loop i)
+  t2c (filler i j) = (loop j) , (loop i)
+
+  c2t2c : (x : S¹ × S¹) → t2c (c2t x) ≡ x
+  c2t2c (base , base) = refl
+  c2t2c (base , loop j) = refl
+  c2t2c (loop i , base) = refl
+  c2t2c (loop i , loop j) = refl
+
+  t2c2t : (x : T²) → c2t (t2c x) ≡ x
+  t2c2t base = refl
+  t2c2t (loop1 i) = refl
+  t2c2t (loop2 i) = refl
+  t2c2t (filler i j) = refl
+
+  t=c : S¹ × S¹ ≡ T²
+  t=c = ua (isoToEquiv (iso c2t t2c t2c2t c2t2c))
+
+
+
+
+
+
+  -- Ω : Σ (Type ℓ) (λ X → X) → Type ℓ
+  -- Ω (X , x) = x ≡ x
+
+  -- π₁ : Σ (Type ℓ) (λ X → X) → Type ℓ
+  -- π₁ (X , x) = ∥ Ω (X , x) ∥₂
+
+  -- ΩX≃S¹→X : ((X , x) : Σ (Type ℓ) (λ X → X)) → Ω (X , x) ≃ Σ (S¹ → X) (λ f → f base ≡ x)
+  -- ΩX≃S¹→X (X , x) = isoToEquiv (iso l2f f2l f2l2f l2f2l) -- () , {!!}
+  --   where
+  --     l2f : x ≡ x → Σ (S¹ → X) (λ f → f base ≡ x)
+  --     l2f p = S¹Elim.rec X x p , p
+
+  --     f2l : Σ (S¹ → X) (λ f → f base ≡ x) → x ≡ x
+  --     f2l (f , p) = refl
+
+  --     f2l2f : section l2f f2l
+  --     f2l2f (f , p) = ΣPathP ((funExt (S¹Elim.ind (λ z → fst (l2f (f2l (f , p))) z ≡ f z) (sym p) {!!})) , {!!})
+
+  --     l2f2l : retract l2f f2l
+  --     l2f2l b = {!!}
+
+
+
+
 
 
 
