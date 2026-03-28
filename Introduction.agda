@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --safe --guardedness -WnoUnsupportedIndexedMatch #-}
 
-module Talks.Introduction where
+module Introduction where
 
 
 

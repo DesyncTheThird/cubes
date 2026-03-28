@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --guardedness -WnoUnsupportedIndexedMatch #-}
 
-module Talks.Cubes where
+module Cubes where
 
 ------------------------------------------------------------------------------
 --
