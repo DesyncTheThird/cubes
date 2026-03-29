@@ -39,25 +39,15 @@ open import Cubical.Foundations.Prelude
            ; subst to tpt
            )
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Path
-open import Cubical.Foundations.GroupoidLaws
-open import Cubical.Foundations.Function
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Function
-open import Cubical.Functions.Embedding
-open import Cubical.Foundations.Structure
-open import Cubical.Foundations.Univalence
 open import Cubical.Relation.Binary.Order.Toset
--- import Cubical.HITs.SetTruncation as STrunc
 import Cubical.HITs.PropositionalTruncation as PTrunc
 import Cubical.Functions.Logic as L
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat
 import Cubical.Data.Nat.Order as Nat
-open import Cubical.Data.Maybe hiding (rec)
 open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to ⋆)
-open import Cubical.Data.Bool hiding (_⊕_ ; _≤_)
 open import Cubical.Data.Empty hiding (rec)
 open import Cubical.Data.Sum hiding (rec)
 import Cubical.Data.Sum as ⊎ using (rec)
