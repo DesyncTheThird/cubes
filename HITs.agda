@@ -32,8 +32,8 @@ variable
 module Int where
 
   data ℤ : Type where
-    pos : ℕ → ℤ
-    neg : ℕ → ℤ
+    pos : (n : ℕ) → ℤ
+    neg : (n : ℕ) → ℤ
     zero : pos 0 ≡ neg 0
 
 
@@ -212,14 +212,14 @@ module CW where
     base : T²
     loop1 : base ≡ base
     loop2 : base ≡ base
-    filler : Square loop1 loop1 loop2 loop2
+    surf : Square loop1 loop1 loop2 loop2
         -- loop1 ∙ loop2 ≡ loop2 ∙ loop1
 
   data K² : Type where
     base : K²
     loop1 : base ≡ base
     loop2 : base ≡ base
-    filler : Square loop1 loop2 (sym loop1) loop2
+    surf : Square loop1 loop2 (sym loop1) loop2
         -- loop1 ∙ loop2 ∙ loop1 ≡ loop2
 
   data RP² : Type where
@@ -239,13 +239,13 @@ module CW where
   c2t (base , base) = base
   c2t (loop i , base) = loop1 i
   c2t (base , loop j) = loop2 j
-  c2t (loop i , loop j) = filler j i
+  c2t (loop i , loop j) = surf j i
 
   t2c : T² → (S¹ × S¹)
   t2c base = (base , base)
   t2c (loop1 i) = (loop i , base)
   t2c (loop2 i) = (base , loop i)
-  t2c (filler i j) = (loop j) , (loop i)
+  t2c (surf i j) = (loop j) , (loop i)
 
   c2t2c : (x : S¹ × S¹) → t2c (c2t x) ≡ x
   c2t2c (base , base) = refl
@@ -257,7 +257,7 @@ module CW where
   t2c2t base = refl
   t2c2t (loop1 i) = refl
   t2c2t (loop2 i) = refl
-  t2c2t (filler i j) = refl
+  t2c2t (surf i j) = refl
 
   t=c : S¹ × S¹ ≃ T²
   t=c = isoToEquiv (iso c2t t2c t2c2t c2t2c)
