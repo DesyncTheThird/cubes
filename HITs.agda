@@ -83,18 +83,16 @@ module Int where
 
 
 
-module HITs where
+------------------------------------------------------------------------------
+-- Some shapes
+------------------------------------------------------------------------------
+
+module Circle where
   open Int
 
   data S¹ : Type where
     base : S¹
     loop : base ≡ base
-
-
-
-  ΩS¹ = base ≡ base
-
-
 
   module S¹Elim where
 
@@ -112,6 +110,7 @@ module HITs where
 
       rec : (x : S¹) → P
       rec = ind (λ _ → P) base* loop*
+
 
 
 
@@ -152,6 +151,17 @@ module HITs where
   p ^ (neg (suc x)) = (p ^ (neg x)) ∙ sym p
   p ^ (zero i) = refl
 
+
+
+  _ : winding (loop ^ (pos 4)) ≡ pos 4
+  _ = refl
+
+
+
+
+
+
+
   windingCount : (n : ℤ) → encode base (loop ^ n) ≡ n
   windingCount (pos 0) = refl
   windingCount (pos (suc x)) = tptComp code (loop ^ (pos x)) loop (pos 0) ∙ ap succ (windingCount (pos x))
@@ -168,26 +178,29 @@ module HITs where
 
 
 
+module CW where
+
+  open Circle
 
   data T² : Type where
     base : T²
     loop1 : base ≡ base
     loop2 : base ≡ base
     filler : Square loop1 loop1 loop2 loop2
-          -- loop1 ∙ loop2 ≡ loop2 ∙ loop1
+        -- loop1 ∙ loop2 ≡ loop2 ∙ loop1
 
   data K² : Type where
     base : K²
     loop1 : base ≡ base
     loop2 : base ≡ base
     filler : Square loop1 loop2 (sym loop1) loop2
-          -- loop1 ∙ loop2 ∙ loop1 ≡ loop2
+        -- loop1 ∙ loop2 ∙ loop1 ≡ loop2
 
   data RP² : Type where
     base : RP²
     loop : base ≡ base
     loop² : Square loop refl refl loop
-       -- loop ∙ loop = refl
+        -- loop ∙ loop = refl
 
 
 

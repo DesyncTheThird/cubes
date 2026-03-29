@@ -107,6 +107,11 @@ module SLists where
       rec : SList A → P
       rec = ind (λ _ → P) []* (λ x {xs} → x ∷*_) (λ x y {xs} → swap* x y) (λ _ → trunc*)
 
+
+
+
+
+
   as : SList ℕ
   as = 1 ∷ 2 ∷ 3 ∷ []
 
@@ -122,10 +127,21 @@ module SLists where
   _ : p ≡ q
   _ = trunc as bs p q
 
-  -- head : ∀ {a} {A : Type a} → SList A → Maybe A
-  -- head [] = nothing
-  -- head (x ∷ xs) = just x
-  -- head (swap x y i) = {!!}
+  -- head : ∀ {a} {A : Type a} → SList A → 𝟙 ⊎ A
+  -- head [] = inl ⋆
+  -- head (x ∷ xs) = inr x
+  -- head (swap x y xs i) = inr {!!}
+  -- head (trunc x xs p q i j) = {!!}
+
+
+
+
+
+
+
+
+
+
 
 module WildMonoid where
 
@@ -208,6 +224,16 @@ module WildMonoid where
   _ : head [ 2 ⸴ 1 ⸴ 3 ] ≡ inr 2
   _ = refl
 
+
+
+
+
+
+
+
+
+
+
 module CMonoid where
 
   open SLists
@@ -228,6 +254,11 @@ module CMonoid where
       (λ x h ys → x ∷ h ys)
       (λ x y h i → λ ys → swap x y (h ys) i)
       (isSet→ trunc)
+
+
+
+
+
 
     ++-unit-r : (xs : SList A) → xs ++ [] ≡ xs
     ++-unit-r = SListElim.indProp (λ xs → xs ++ [] ≡ xs)
@@ -252,6 +283,14 @@ module CMonoid where
       (λ ys → sym (++-unit-r ys))
       (λ x {xs} h ys → ap (x ∷_) (h ys) ∙∙ ap (_++ xs) (∷-comm x ys) ∙∙ ++-assoc ys [ x ] xs)
       (λ xs → isPropΠ (λ ys → trunc (xs ++ ys) (ys ++ xs)))
+
+
+
+
+
+
+
+
 
   record WSMon {a} (A : Type a) : Type a where
     infixr 10 _⊕_
@@ -282,8 +321,11 @@ module CMonoid where
   SListWSMon .comm = ++-comm
   SListWSMon .hLevel = trunc
 
+
+
   η : ∀ {a} {A : Type a} → A → SList A
   η a = [ a ]
+
 
 
   hPropWSMon : ∀ {ℓ} → WSMon (hProp ℓ)
@@ -295,6 +337,9 @@ module CMonoid where
   hPropWSMon .assocr = λ x y z → (sym (L.⊔-assoc x y z))
   hPropWSMon .comm = L.⊔-comm
   hPropWSMon .hLevel = isSetHProp
+
+
+
 
 
   module _ {a m} {A : Type a} {M : Type m} (M* : WSMon M) where
@@ -395,7 +440,6 @@ module CMonoid where
       (isProp× (isPropValued x a) (isPropValued x b))
       (⊓-univ₁ a b x) (⊓-univ₂ a b x)
 
-
     よ≡ : (a b : A) → ((x : A) → x ≤ a ≃ x ≤ b) → a ≡ b
     よ≡ a b f = antisym a b (f a .fst (reflexivity a)) (invEq (f b) (reflexivity b))
 
@@ -410,6 +454,10 @@ module CMonoid where
     ⊓-comm : (a b : A) → a ⊓ b ≡ b ⊓ a
     ⊓-comm a b = よ≡ (a ⊓ b) (b ⊓ a)
       λ x → compEquiv (⊓-univ a b x) (compEquiv Σ-swap-≃ (invEquiv (⊓-univ b a x)))
+
+
+
+
 
     infixr 20 _⊗_
     _⊗_ : 𝟙 ⊎ A → 𝟙 ⊎ A → 𝟙 ⊎ A
@@ -433,6 +481,11 @@ module CMonoid where
     ⊗-comm (inr a) (inl ⋆) = refl
     ⊗-comm (inr a) (inr b) = ap inr (⊓-comm a b)
 
+
+
+
+
+
     MaybeSMon : (WSMon (𝟙 ⊎ A))
     MaybeSMon .e = inl ⋆
     MaybeSMon ._⊕_ = _⊗_
@@ -440,6 +493,10 @@ module CMonoid where
     MaybeSMon .assocr = ⊗-assoc
     MaybeSMon .comm = ⊗-comm
     MaybeSMon .hLevel = isSet⊎ isSetUnit (IsToset.is-set (TosetStr.isToset A*))
+
+
+
+
 
     h : SList A → 𝟙 ⊎ A
     h = [ MaybeSMon ] inr ♯
@@ -461,5 +518,5 @@ module CMonoid where
   _ : h [] ≡ inl ⋆
   _ = refl
 
-  _ : h [ 4 ⸴ 5 ⸴ 69 ⸴ 6 ⸴ 7 ] ≡ inr 4
+  _ : h [ 4 ⸴ 6 ⸴ 9 ⸴ 6 ⸴ 7 ] ≡ inr 4
   _ = refl
