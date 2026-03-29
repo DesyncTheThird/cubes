@@ -94,6 +94,9 @@ module Circle where
     base : S¹
     loop : base ≡ base
 
+
+  {- Universal property of S¹ -}
+
   module S¹Elim where
 
     module _ (P : S¹ → Type ℓ')
@@ -112,8 +115,26 @@ module Circle where
       rec = ind (λ _ → P) base* loop*
 
 
+  Ω : Σ (Type ℓ) (λ X → X) → Type ℓ
+  Ω (X , x) = x ≡ x
+
+  S¹Univ : (X : Type ℓ) → (S¹ → X) ≃ Σ X (λ x → Ω (X , x))
+  S¹Univ X = isoToEquiv (iso f2l l2f f2l2f l2f2l)
+    where
+      f2l : (S¹ → X) → Σ X (λ x → Ω (X , x))
+      f2l f = (f base) , ap f loop
+      l2f : Σ X (λ x → Ω (X , x)) → S¹ → X
+      l2f (x , p) base = x
+      l2f (x , p) (loop i) = p i
+      f2l2f : ∀ x → f2l (l2f x) ≡ x
+      f2l2f (x , p) = refl
+      l2f2l : ∀ f → l2f (f2l f) ≡ f
+      l2f2l f i base = f base
+      l2f2l f i (loop j) = f (loop j)
 
 
+
+  {- involution on S¹ -}
 
   twist : S¹ → S¹
   twist base = base
@@ -126,6 +147,7 @@ module Circle where
 
 
 
+  {- universal cover of S¹ -}
 
   cover : ℤ → (base ≡ base)
   cover (pos zero) = refl
@@ -140,6 +162,8 @@ module Circle where
 
   encode : (x : S¹) → (base ≡ x) → code x
   encode x p = tpt code p (pos 0)
+
+  {- winding numbers -}
 
   winding : (base ≡ base) → ℤ
   winding = encode base
@@ -176,7 +200,9 @@ module Circle where
 
 
 
-
+------------------------------------------------------------------------------
+--- Shapes
+------------------------------------------------------------------------------
 
 module CW where
 
@@ -205,8 +231,9 @@ module CW where
 
 
 
-
-  -- S¹ × S¹ ≃ T²
+------------------------------------------------------------------------------
+-- S¹ × S¹ ≃ T²
+------------------------------------------------------------------------------
 
   c2t : (S¹ × S¹) → T²
   c2t (base , base) = base
@@ -234,24 +261,3 @@ module CW where
 
   t=c : S¹ × S¹ ≃ T²
   t=c = isoToEquiv (iso c2t t2c t2c2t c2t2c)
-
-
-
-
-
-  Ω : Σ (Type ℓ) (λ X → X) → Type ℓ
-  Ω (X , x) = x ≡ x
-
-  S¹Univ : (X : Type ℓ) → (S¹ → X) ≃ Σ X (λ x → Ω (X , x))
-  S¹Univ X = isoToEquiv (iso f2l l2f f2l2f l2f2l)
-    where
-      f2l : (S¹ → X) → Σ X (λ x → Ω (X , x))
-      f2l f = (f base) , ap f loop
-      l2f : Σ X (λ x → Ω (X , x)) → S¹ → X
-      l2f (x , p) base = x
-      l2f (x , p) (loop i) = p i
-      f2l2f : ∀ x → f2l (l2f x) ≡ x
-      f2l2f (x , p) = refl
-      l2f2l : ∀ f → l2f (f2l f) ≡ f
-      l2f2l f i base = f base
-      l2f2l f i (loop j) = f (loop j)

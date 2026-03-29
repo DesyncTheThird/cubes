@@ -12,8 +12,12 @@ module index where
 --                       University of Strathclyde
 --
 ------------------------------------------------------------------------------
+--                 https://desyncthethird.github.io/cubes/
+------------------------------------------------------------------------------
 
-import Introduction
+import Intro
+
+import Paths
 
 import HITs
 

@@ -1,35 +1,6 @@
 module Spice where
 
 ------------------------------------------------------------------------------
---
---                         Programming with Cubes
---
---          Vikraman Choudhury    <vikraman.choudhury@strath.ac.uk>
---               Rin Liu          <rin.liu@strath.ac.uk>
---
---               Mathematically Structured Programming group
---                   Computer and Information Sciences
---                       University of Strathclyde
---
-------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
 -- We'll be using the Cubical Agda standard Library:
 
 open import Cubical.Foundations.Prelude
@@ -59,7 +30,7 @@ variable
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- Spicy Lists, Spicy Vectors
+-- Spicy Lists
 ------------------------------------------------------------------------------
 
 module SLists where
@@ -72,6 +43,7 @@ module SLists where
     swap : (x y : A) (xs : SList A) → x ∷ y ∷ xs ≡ y ∷ x ∷ xs
     trunc : isSet (SList A)
 
+  {- eliminators -}
   module SListElim where
     module _ (P : SList A → Type ℓ')
          ([]* : P [])
@@ -112,6 +84,7 @@ module SLists where
 
 
 
+  {- permutations -}
   as : SList ℕ
   as = 1 ∷ 2 ∷ 3 ∷ []
 
@@ -143,16 +116,16 @@ module SLists where
 
 
 
-module WildMonoid where
+module Monoid where
 
   open import Cubical.Data.List
 
-  pattern [_⸴_]       a b         = a ∷ b ∷ []
-  pattern [_⸴_⸴_]     a b c       = a ∷ b ∷ c ∷ []
-  pattern [_⸴_⸴_⸴_]   a b c d     = a ∷ b ∷ c ∷ d ∷ []
-  pattern [_⸴_⸴_⸴_⸴_] a b c d e   = a ∷ b ∷ c ∷ d ∷ e ∷ []
+  pattern [_∶_]       a b         = a ∷ b ∷ []
+  pattern [_∶_∶_]     a b c       = a ∷ b ∷ c ∷ []
+  pattern [_∶_∶_∶_]   a b c d     = a ∷ b ∷ c ∷ d ∷ []
+  pattern [_∶_∶_∶_∶_] a b c d e   = a ∷ b ∷ c ∷ d ∷ e ∷ []
 
-  record WMon {a} (A : Type a) : Type a where
+  record Mon {a} (A : Type a) : Type a where
     infixr 10 _⊕_
     field
       e : A
@@ -160,68 +133,68 @@ module WildMonoid where
       unitl : ∀ x → e ⊕ x ≡ x
       unitr : ∀ x → x ⊕ e ≡ x
       assocr : ∀ x y z → (x ⊕ y) ⊕ z ≡ x ⊕ (y ⊕ z)
-  open WMon
+  open Mon
 
-  record WMonHom {a b} {A : Type a} {B : Type b} (M : WMon A) (N : WMon B) : Type (ℓ-max a b) where
+  record MonHom {a b} {A : Type a} {B : Type b} (M : Mon A) (N : Mon B) : Type (ℓ-max a b) where
     private
-      module M = WMon M
-      module N = WMon N
+      module M = Mon M
+      module N = Mon N
     field
       ϕ : A → B
       preserves-e : ϕ M.e ≡ N.e
       preserves-⊕ : ∀ x y → ϕ (x M.⊕ y) ≡ ϕ x N.⊕ ϕ y
-  open WMonHom
+  open MonHom
 
-  ListWMon : ∀ {a} {A : Type a} → WMon (List A)
-  ListWMon .e = []
-  ListWMon ._⊕_ = _++_
-  ListWMon .unitl xs = refl
-  ListWMon .unitr = ++-unit-r
-  ListWMon .assocr = ++-assoc
+  ListMon : ∀ {a} {A : Type a} → Mon (List A)
+  ListMon .e = []
+  ListMon ._⊕_ = _++_
+  ListMon .unitl xs = refl
+  ListMon .unitr = ++-unit-r
+  ListMon .assocr = ++-assoc
 
   η : ∀ {a} {A : Type a} → A → List A
   η a = [ a ]
 
-  module _ {a m} {A : Type a} {M : Type m} (M* : WMon M) where
+  module _ {a m} {A : Type a} {M : Type m} (M* : Mon M) where
     private
-      module M = WMon M*
-      sharp : (A → M) → List A → M
-      sharp f [] = M.e
-      sharp f (x ∷ xs) = f x M.⊕ sharp f xs
+      module M = Mon M*
+      eval : (A → M) → List A → M
+      eval f [] = M.e
+      eval f (x ∷ xs) = f x M.⊕ eval f xs
 
-    [_]_♯ = sharp
+    [_]_♯ = eval
 
-    module _ (h* : WMonHom ListWMon M*) (f : A → M) where
+    module _ (h* : MonHom ListMon M*) (f : A → M) where
       private
-        module h = WMonHom h*
-        sharp-uniq : h.ϕ ∘ η ≡ f → ∀ xs → h.ϕ xs ≡ sharp f xs
-        sharp-uniq p [] =
+        module h = MonHom h*
+        eval-uniq : h.ϕ ∘ η ≡ f → ∀ xs → h.ϕ xs ≡ eval f xs
+        eval-uniq p [] =
           h.preserves-e
-        sharp-uniq p (x ∷ xs) =
+        eval-uniq p (x ∷ xs) =
             h.preserves-⊕ [ x ] xs
           ∙ ap (M._⊕ h.ϕ xs) (funExt⁻ p x)
-          ∙ ap (f x M.⊕_) (sharp-uniq p xs)
+          ∙ ap (f x M.⊕_) (eval-uniq p xs)
 
-      [_]_♯-uniq = sharp-uniq
+      [_]_♯-uniq = eval-uniq
 
-  𝟙+⟨_⟩-WMon : ∀ {a} (A : Type a) → WMon (𝟙 ⊎ A)
-  𝟙+⟨ A ⟩-WMon .e = inl ⋆
-  𝟙+⟨ A ⟩-WMon ._⊕_ (inl ⋆) y = y
-  𝟙+⟨ A ⟩-WMon ._⊕_ (inr x) y = inr x
-  𝟙+⟨ A ⟩-WMon .unitl x = refl
-  𝟙+⟨ A ⟩-WMon .unitr (inl ⋆) = refl
-  𝟙+⟨ A ⟩-WMon .unitr (inr x) = refl
-  𝟙+⟨ A ⟩-WMon .assocr (inl ⋆) y z = refl
-  𝟙+⟨ A ⟩-WMon .assocr (inr x) (inl ⋆) z = refl
-  𝟙+⟨ A ⟩-WMon .assocr (inr x) (inr y) z = refl
+  𝟙+⟨_⟩-Mon : ∀ {a} (A : Type a) → Mon (𝟙 ⊎ A)
+  𝟙+⟨ A ⟩-Mon .e = inl ⋆
+  𝟙+⟨ A ⟩-Mon ._⊕_ (inl ⋆) y = y
+  𝟙+⟨ A ⟩-Mon ._⊕_ (inr x) y = inr x
+  𝟙+⟨ A ⟩-Mon .unitl x = refl
+  𝟙+⟨ A ⟩-Mon .unitr (inl ⋆) = refl
+  𝟙+⟨ A ⟩-Mon .unitr (inr x) = refl
+  𝟙+⟨ A ⟩-Mon .assocr (inl ⋆) y z = refl
+  𝟙+⟨ A ⟩-Mon .assocr (inr x) (inl ⋆) z = refl
+  𝟙+⟨ A ⟩-Mon .assocr (inr x) (inr y) z = refl
 
   head : ∀ {a} {A : Type a} → List A → 𝟙 ⊎ A
-  head {A = A} = [ 𝟙+⟨ A ⟩-WMon ] inr ♯
+  head {A = A} = [ 𝟙+⟨ A ⟩-Mon ] inr ♯
 
-  _ : ∀ {a} {A : Type a} → head {A = A} [] ≡ inl ⋆
+  _ : head {A = ℕ} [] ≡ inl ⋆
   _ = refl
 
-  _ : head [ 2 ⸴ 1 ⸴ 3 ] ≡ inr 2
+  _ : head {A = ℕ} [ 2 ∶ 1 ∶ 3 ] ≡ inr 2
   _ = refl
 
 
@@ -239,10 +212,10 @@ module CMonoid where
   open SLists
 
   pattern [_]         a           = a ∷ []
-  pattern [_⸴_]       a b         = a ∷ b ∷ []
-  pattern [_⸴_⸴_]     a b c       = a ∷ b ∷ c ∷ []
-  pattern [_⸴_⸴_⸴_]   a b c d     = a ∷ b ∷ c ∷ d ∷ []
-  pattern [_⸴_⸴_⸴_⸴_] a b c d e   = a ∷ b ∷ c ∷ d ∷ e ∷ []
+  pattern [_∶_]       a b         = a ∷ b ∷ []
+  pattern [_∶_∶_]     a b c       = a ∷ b ∷ c ∷ []
+  pattern [_∶_∶_∶_]   a b c d     = a ∷ b ∷ c ∷ d ∷ []
+  pattern [_∶_∶_∶_∶_] a b c d e   = a ∷ b ∷ c ∷ d ∷ e ∷ []
 
   module _ {ℓ} {A : Type ℓ} where
 
@@ -281,7 +254,10 @@ module CMonoid where
     ++-comm : (xs ys : SList A) → xs ++ ys ≡ ys ++ xs
     ++-comm = SListElim.indProp (λ xs → (ys : SList A) → xs ++ ys ≡ ys ++ xs)
       (λ ys → sym (++-unit-r ys))
-      (λ x {xs} h ys → ap (x ∷_) (h ys) ∙∙ ap (_++ xs) (∷-comm x ys) ∙∙ ++-assoc ys [ x ] xs)
+      (λ x {xs} h ys i →
+        hcomp (λ j → λ { (i = i0) → x ∷ h ys (~ j)
+                       ; (i = i1) → ++-assoc ys [ x ] xs j })
+              (∷-comm x ys i ++ xs))
       (λ xs → isPropΠ (λ ys → trunc (xs ++ ys) (ys ++ xs)))
 
 
@@ -292,7 +268,7 @@ module CMonoid where
 
 
 
-  record WSMon {a} (A : Type a) : Type a where
+  record CMon {a} (A : Type a) : Type a where
     infixr 10 _⊕_
     field
       e : A
@@ -301,25 +277,25 @@ module CMonoid where
       assocr : ∀ x y z → (x ⊕ y) ⊕ z ≡ x ⊕ (y ⊕ z)
       comm : ∀ x y → x ⊕ y ≡ y ⊕ x
       hLevel : isSet A
-  open WSMon
+  open CMon
 
-  record WSMonHom {a b} {A : Type a} {B : Type b} (M : WSMon A) (N : WSMon B) : Type (ℓ-max a b) where
+  record CMonHom {a b} {A : Type a} {B : Type b} (M : CMon A) (N : CMon B) : Type (ℓ-max a b) where
     private
-      module M = WSMon M
-      module N = WSMon N
+      module M = CMon M
+      module N = CMon N
     field
       ϕ : A → B
       preserves-e : ϕ M.e ≡ N.e
       preserves-⊕ : ∀ x y → ϕ (x M.⊕ y) ≡ ϕ x N.⊕ ϕ y
-  open WSMonHom
+  open CMonHom
 
-  SListWSMon : ∀ {a} {A : Type a} → WSMon (SList A)
-  SListWSMon .e = []
-  SListWSMon ._⊕_ = _++_
-  SListWSMon .unitl xs = refl
-  SListWSMon .assocr = ++-assoc
-  SListWSMon .comm = ++-comm
-  SListWSMon .hLevel = trunc
+  SListCMon : ∀ {a} {A : Type a} → CMon (SList A)
+  SListCMon .e = []
+  SListCMon ._⊕_ = _++_
+  SListCMon .unitl xs = refl
+  SListCMon .assocr = ++-assoc
+  SListCMon .comm = ++-comm
+  SListCMon .hLevel = trunc
 
 
 
@@ -328,45 +304,45 @@ module CMonoid where
 
 
 
-  hPropWSMon : ∀ {ℓ} → WSMon (hProp ℓ)
-  hPropWSMon .e = (⊥* , isProp⊥*)
-  hPropWSMon ._⊕_ = L._⊔_
-  hPropWSMon .unitl x =
+  hPropCMon : ∀ {ℓ} → CMon (hProp ℓ)
+  hPropCMon .e = (⊥* , isProp⊥*)
+  hPropCMon ._⊕_ = L._⊔_
+  hPropCMon .unitl x =
     L.⇒∶ PTrunc.rec (x .snd) (λ { (inr x) → x ; (inl ()) })
       ⇐∶ λ x → PTrunc.∣ (inr x) ∣₁
-  hPropWSMon .assocr = λ x y z → (sym (L.⊔-assoc x y z))
-  hPropWSMon .comm = L.⊔-comm
-  hPropWSMon .hLevel = isSetHProp
+  hPropCMon .assocr = λ x y z → (sym (L.⊔-assoc x y z))
+  hPropCMon .comm = L.⊔-comm
+  hPropCMon .hLevel = isSetHProp
 
 
 
 
 
-  module _ {a m} {A : Type a} {M : Type m} (M* : WSMon M) where
+  module _ {a m} {A : Type a} {M : Type m} (M* : CMon M) where
     private
-      module M = WSMon M*
-      sharp : (A → M) → SList A → M
-      sharp f = SListElim.rec M
+      module M = CMon M*
+      eval : (A → M) → SList A → M
+      eval f = SListElim.rec M
         M.e
         (λ a h → f a M.⊕ h)
         (λ x y h → sym (M.assocr (f x) (f y) h) ∙∙ ap (M._⊕ h) (M.comm (f x) (f y)) ∙∙ M.assocr (f y) (f x) h)
         M.hLevel
 
-    [_]_♯ = sharp
+    [_]_♯ = eval
 
-    sharpCons : ∀ x xs → {f : A → M} → sharp f (x ∷ xs) ≡ f x M.⊕ sharp f xs
-    sharpCons x xs = refl
+    eval-cons : ∀ x xs → {f : A → M} → eval f (x ∷ xs) ≡ f x M.⊕ eval f xs
+    eval-cons x xs = refl
 
-    module _ (h* : WSMonHom SListWSMon M*) (f : A → M) where
+    module _ (h* : CMonHom SListCMon M*) (f : A → M) where
       private
-        module h = WSMonHom h*
-        sharp-uniq : h.ϕ ∘ η ≡ f → ∀ xs → h.ϕ xs ≡ sharp f xs
-        sharp-uniq p = SListElim.indProp (λ xs → h.ϕ xs ≡ sharp f xs)
+        module h = CMonHom h*
+        eval-uniq : h.ϕ ∘ η ≡ f → ∀ xs → h.ϕ xs ≡ eval f xs
+        eval-uniq p = SListElim.indProp (λ xs → h.ϕ xs ≡ eval f xs)
           h.preserves-e
           (λ x {xs} H → h.preserves-⊕ [ x ] xs ∙ ap (M._⊕ h.ϕ xs) (funExt⁻ p x) ∙ ap (f x M.⊕_) H)
-          (λ xs → M.hLevel (h.ϕ xs) (sharp f xs))
+          (λ xs → M.hLevel (h.ϕ xs) (eval f xs))
 
-      [_]_♯-uniq = sharp-uniq
+      [_]_♯-uniq = eval-uniq
 
 
 
@@ -486,20 +462,20 @@ module CMonoid where
 
 
 
-    MaybeSMon : (WSMon (𝟙 ⊎ A))
-    MaybeSMon .e = inl ⋆
-    MaybeSMon ._⊕_ = _⊗_
-    MaybeSMon .unitl = λ _ → refl
-    MaybeSMon .assocr = ⊗-assoc
-    MaybeSMon .comm = ⊗-comm
-    MaybeSMon .hLevel = isSet⊎ isSetUnit (IsToset.is-set (TosetStr.isToset A*))
+    MaybeCMon : CMon (𝟙 ⊎ A)
+    MaybeCMon .e = inl ⋆
+    MaybeCMon ._⊕_ = _⊗_
+    MaybeCMon .unitl = λ _ → refl
+    MaybeCMon .assocr = ⊗-assoc
+    MaybeCMon .comm = ⊗-comm
+    MaybeCMon .hLevel = isSet⊎ isSetUnit (IsToset.is-set (TosetStr.isToset A*))
 
 
 
 
 
-    h : SList A → 𝟙 ⊎ A
-    h = [ MaybeSMon ] inr ♯
+    head : SList A → 𝟙 ⊎ A
+    head = [ MaybeCMon ] inr ♯
 
   ℕ* : IsToset {ℓ = ℓ-zero} {ℓ' = ℓ-zero} {A = ℕ} Nat._≤_
   ℕ* .IsToset.is-set = isSetℕ
@@ -515,8 +491,8 @@ module CMonoid where
 
   open SymHead (ℕ , (tosetstr Nat._≤_ ℕ*))
 
-  _ : h [] ≡ inl ⋆
+  _ : head [] ≡ inl ⋆
   _ = refl
 
-  _ : h [ 4 ⸴ 6 ⸴ 9 ⸴ 6 ⸴ 7 ] ≡ inr 4
+  _ : head [ 4 ∶ 6 ∶ 9 ∶ 6 ∶ 7 ] ≡ inr 4
   _ = refl

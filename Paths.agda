@@ -1,12 +1,10 @@
-module Introduction where
+module Paths where
 
 ------------------------------------------------------------------------------
 
 import Cubical.Foundations.Prelude as Lib renaming (subst to tpt)
 
 open import Cubical.Core.Primitives
-import Cubical.Data.Equality renaming (_≡_ to Id ; refl to idp)
-open Cubical.Data.Equality using (Id ; idp)
 
 variable
   ℓ ℓ' ℓ'' : Level
@@ -14,158 +12,6 @@ variable
 
 ------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
--- Dependent Types
-------------------------------------------------------------------------------
-
-module _ where
-  open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to ⋆)
-  open import Cubical.Data.Sum
-  open import Cubical.Data.Nat
-  open import Cubical.Data.Bool
-
-  f : ℕ → Bool
-  f n = true
-
-  g : (n : ℕ) → if isEven n then ℕ else Bool
-  g zero = zero
-  g (suc zero) = true
-  g (suc (suc n)) = g n
-
-  module Lists where
-
-    data List {ℓ} (A : Type ℓ) : Type ℓ where
-      []  : List A
-      _∷_ : A → List A → List A
-
-    head : {A : Type ℓ} → List A → 𝟙 ⊎ A
-    head [] = inl ⋆
-    head (x ∷ xs) = inr x
-
-  module Vectors where
-
-    data Vec {ℓ} (A : Type ℓ) : ℕ → Type ℓ where
-      []  : Vec A zero
-      _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
-
-    head : {A : Type ℓ} {n : ℕ} → Vec A (suc n) → A
-    head (x ∷ xs) = x
-
-
-{-
-
-Π-type:   (x : A) → B x       "for all x : A, a term of B x"
-Σ-type:   Σ (x : A) B x       "an x : A, together with a term of B x"
-=-type:   x ≡ y               "given x, y : A, an identification of x with y"
-
--}
-
-
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
--- Equality types
-------------------------------------------------------------------------------
-
-{-
-
-Formation              a b : A    ⊢    Id a b : Type
-
-Introduction             a : A    ⊢    refl : Id a a
-
-Elimination                       J
-
-J : (P : (x y : A) → x ≡ y → Type)    -- Motive P transforming equality into target type
-  → (d : (x : A) → P x x refl)        -- Proof that P holds for refl
-  → (p : a ≡ b) → P a b p             -- Returns a function that eliminates from equality types
-
-To prove something (P) about a general equality (p : a ≡ b),
-it suffices to prove it for the reflexivity case.
-
--}
-
-refl' : {a : A} → Id a a
-refl' = idp
-
-sym' : {a b : A} → Id a b → Id b a
-sym' idp = idp
--- sym' {a = a} {b} = J (λ x y p → y ≡ x) (λ x → refl) a b
-
-trans' : ∀ {ℓ} {A : Type ℓ} → {a b c : A} → Id a b → Id b c → Id a c
-trans' idp p = p
--- trans' {A = A} {a = a} {b} {c} p = J (λ x y q → (c : A) → y ≡ c → x ≡ c) (λ x c p → p) a b p c
-
-------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
--- Homotopy Type Theory
-------------------------------------------------------------------------------
-
-{-
-
-The Homotopy Interpretation:
-
- A : Type         <->        Topological space
- a : A            <->        Points in A
- p : a ≡ b        <->        Paths from a to b
- α : p ≡ q        <->        Homotopies between paths
-...               <->        Higher homotopies
-
-Types are infinity groupoids:
-
--}
-
-module _ {a b c d : A} where
-
-  unitr' : (p : Id a b) → Id (trans' p idp) p
-  unitr' idp = idp
-
-  assoc' : (p : Id a b) (q : Id b c) (r : Id c d)
-    → Id (trans' p (trans' q r)) (trans' (trans' p q ) r)
-  assoc' idp q r = idp
-
-  sym² : (p : Id a b) → Id (sym' (sym' p)) p
-  sym² idp = idp
-
-------------------------------------------------------------------------------
 
 
 
@@ -365,21 +211,20 @@ module Squares where
 
 
 
-
   filler : (p : a ≡ b) (q : c ≡ d) (r : a ≡ c)
     → Square p q r (lid p q r)
   filler p q r i j =
     hcomp (λ k → (λ { (i = i0) → p (j ∧ k)
                     ; (i = i1) → q (j ∧ k)
                     ; (j = i0) → r i
-                    -- ; (j = i1) → {!!} -- recursive sorcery
+                    -- ; (j = i1) → filler p q r i k -- recursive sorcery
                     }))
           (r i)
 
   infixr 5 _∙_
 
   _∙_ : a ≡ b → b ≡ c → a ≡ c
-  r ∙ q = lid (refl _) q r
+  r ∙ q = lid (refl (r i0)) q r
 
 
 
